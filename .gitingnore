@@ -1,0 +1,11 @@
+
+test-files/*
+*.bak
+*.tmp
+*.log
+*.swp
+*.DS_Store
+kns # ignore the binary file
+*.exe # ignore Windows executables
+*.old
+*.working
