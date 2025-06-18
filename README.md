@@ -9,8 +9,19 @@
 - Updates your kubeconfig file to set the selected namespace as default for the current context.
 - Works with the kubeconfig file specified by the `KUBECONFIG` environment variable or defaults to user's home directory.
 
+## Screenshot
+![kns screenshot](img/1.png)
+
 ## Installation
 
+- Download the latest release binary from the [releases page](https://github.com/prit342/kns/releases).
+
+- If you have Go installed, you can also run:
+```sh
+go install github.com/prit342/kns@latest
+```
+
+## Building from Source
 Clone the repository and build the binary:
 
 ```sh
