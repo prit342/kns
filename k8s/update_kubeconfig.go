@@ -4,11 +4,23 @@ import (
 	"context"
 	"fmt"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 // UpdateKubeConfigWithNamespace updates the kubeconfig to use the specified namespace
 func (s *Service) UpdateKubeConfigWithNamespace(ctx context.Context, namespace string) error {
+
+	// Check if the namespace is valid
+	if namespace == "" {
+		return fmt.Errorf("namespace cannot be empty")
+	}
+
+	// check if namespace actually exists in the kubernets cluster
+	if _, err := s.client.CoreV1().Namespaces().Get(ctx, namespace, metav1.GetOptions{}); err != nil {
+		return fmt.Errorf("error reading namespace '%s': %w", namespace, err)
+	}
+
 	// Get the current context
 	config, err := clientcmd.LoadFromFile(s.kubeConfigLocation)
 	if err != nil {
