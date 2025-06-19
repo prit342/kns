@@ -57,5 +57,5 @@ Simply run the binary:
 
 
 ## TODO List
-- [ ] Add functionaly to run `kns <namespace>` to switch to a specific namespace directly from the command line.
+- [x] Add functionaly to run `kns <namespace>` to switch to a specific namespace directly from the command line.
 - [ ] Add various tests
