@@ -114,13 +114,13 @@ func (m model) View() string {
 	// if a namespace was selected, we display a confirmation message
 	if m.choice != "" {
 		return quitTextStyle.Render(
-			fmt.Sprintf("\n\nswitched namespace to %s in file %s", m.choice, m.kubeconfigLocation),
+			fmt.Sprintf("\n✅ switched namespace to '%s' in kubeconfig file '%s'", m.choice, m.kubeconfigLocation),
 		)
 	}
 	// if the user is quitting without making any changes, we display a message
 	if m.quitting {
 		return quitTextStyle.Render(
-			fmt.Sprintf("\n\nno updated were made to kubeconfig file at %s", m.kubeconfigLocation),
+			fmt.Sprintf("\n\n✅ no updated were made to kubeconfig file at %s", m.kubeconfigLocation),
 		)
 	}
 	return "\n" + m.list.View()
