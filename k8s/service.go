@@ -18,7 +18,7 @@ var _ NameSpaceListerConfigUpdater = (*Service)(nil)
 
 // Service is a struct that provides methods to list Kubernetes namespaces
 type Service struct {
-	client             *kubernetes.Clientset
+	client             kubernetes.Interface
 	kubeConfigLocation string
 }
 

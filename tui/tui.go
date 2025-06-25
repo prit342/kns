@@ -63,9 +63,7 @@ type model struct {
 	kubeconfigLocation string                           // file path of the kubeconfig file
 }
 
-// TODO: use this to to bootstrap the
-//
-//	list as per https://github.com/charmbracelet/bubbletea/tree/main/tutorials/commands
+// list as per https://github.com/charmbracelet/bubbletea/tree/main/tutorials/commands
 func (m model) Init() tea.Cmd {
 	return nil
 }
@@ -79,7 +77,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
-		case "q", "ctrl+c":
+		case "ctrl+c":
 			m.quitting = true
 			return m, tea.Quit
 
@@ -136,7 +134,7 @@ func NewModel(svc k8s.NameSpaceListerConfigUpdater, namespaces []string) model {
 	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
 	l.Title = "Select kubernetes namespace"
 	l.SetShowStatusBar(true)
-	l.SetFilteringEnabled(false)
+	l.SetFilteringEnabled(true)
 	l.Styles.Title = titleStyle
 	l.Styles.PaginationStyle = paginationStyle
 	l.Styles.HelpStyle = helpStyle

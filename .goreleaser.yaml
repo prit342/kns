@@ -8,7 +8,7 @@ builds:
   - -s
   - -w
   - -X main.version={{.Tag}}
-  - -X main.gitHash={{.FullCommit}}
+  - -X main.gitCommit={{.FullCommit}}
   - -X main.buildDate={{.Date}}
   goos:
   - linux

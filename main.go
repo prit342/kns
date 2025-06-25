@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/prit342/kns/k8s"
 	"github.com/prit342/kns/tui"
 )
@@ -40,7 +39,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// Create a context with a timeout for the operations
+	// 15 seconds should be enough for most operations
+	ctx, cancel := context.WithTimeout(context.Background(), 14*time.Second)
 	defer cancel()
 
 	// check if we have more than 1 argument passed to the program
@@ -76,11 +77,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	kubeConfigLocation := svc.GetKubeConfigLocation(ctx)
 	// we have no arguments, so we launch the TUI to switch namespaces
-	m := tui.NewModel(svc, namespaces)
-
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
+	app := tui.NewTUI(namespaces, svc, kubeConfigLocation)
+	if err := app.Run(ctx); err != nil {
+		fmt.Printf("\nError running program: %s", err)
 		os.Exit(1)
 	}
+
+	fmt.Printf("Successfully updated kubeconfig at %s", kubeConfigLocation)
+
 }
