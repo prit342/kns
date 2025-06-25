@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -72,6 +73,8 @@ func (m model) Init() tea.Cmd {
 
 // Update handles user input and updates the model accordingly
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	m.list, cmd = m.list.Update(msg)
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.list.SetWidth(msg.Width)
@@ -79,7 +82,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
-		case "q", "ctrl+c":
+		case "esc", "ctrl+c":
 			m.quitting = true
 			return m, tea.Quit
 
@@ -97,8 +100,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
 	return m, cmd
 }
 
@@ -126,7 +127,7 @@ func (m model) View() string {
 }
 
 // NewModel initializes a new model with the provided service and list of namespaces
-func NewModel(svc k8s.NameSpaceListerConfigUpdater, namespaces []string) model {
+func NewModel(svc k8s.NameSpaceListerConfigUpdater, namespaces []string, kubeconfigFileLocation string) model {
 
 	var items []list.Item
 	for _, v := range namespaces {
@@ -136,15 +137,19 @@ func NewModel(svc k8s.NameSpaceListerConfigUpdater, namespaces []string) model {
 	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
 	l.Title = "Select kubernetes namespace"
 	l.SetShowStatusBar(true)
-	l.SetFilteringEnabled(false)
+	l.SetFilteringEnabled(true)
 	l.Styles.Title = titleStyle
 	l.Styles.PaginationStyle = paginationStyle
 	l.Styles.HelpStyle = helpStyle
 
+	l.KeyMap.Quit = key.NewBinding(
+		key.WithKeys("ctrl+c"),
+		key.WithHelp("ctrl+c", "quit"),
+	)
 	m := model{
 		list:               l,
 		svc:                svc,
-		kubeconfigLocation: svc.GetKubeConfigLocation(context.Background()),
+		kubeconfigLocation: kubeconfigFileLocation,
 	}
 
 	return m

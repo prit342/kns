@@ -61,11 +61,13 @@ func main() {
 			// try to switch to the specified namespace
 			namespace := os.Args[1]
 			if err := svc.UpdateKubeConfigWithNamespace(ctx, namespace); err != nil {
-				fmt.Fprintf(os.Stderr, "\n\nError switching to namespace '%s': %v\n", namespace, err)
+				// if we cannot switch to the namespace, we print an error message and exit
+				fmt.Fprintf(os.Stderr, "\n\n❌ ❌ Error switching to namespace %q: %v\n", namespace, err)
 				os.Exit(1)
 			}
-			fmt.Printf("\nupdated kubeconfig and switched to namespace '%s'\n", namespace)
-			os.Exit(0)
+			fmt.Printf("\n✅ Updated kube config at %q and switched to namespace %q\n",
+				svc.GetKubeConfigLocation(), namespace)
+			return
 		}
 	}
 
@@ -77,7 +79,7 @@ func main() {
 	}
 
 	// we have no arguments, so we launch the TUI to switch namespaces
-	m := tui.NewModel(svc, namespaces)
+	m := tui.NewModel(svc, namespaces, svc.GetKubeConfigLocation())
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)

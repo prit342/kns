@@ -23,7 +23,7 @@ type Service struct {
 }
 
 // GetKubeConfigLocation returns the location of the kubeconfig file used by the Service
-func (s *Service) GetKubeConfigLocation(_ context.Context) string {
+func (s *Service) GetKubeConfigLocation() string {
 	return s.kubeConfigLocation
 }
 
