@@ -3,13 +3,9 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"path/filepath"
-
-	"os"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -18,7 +14,7 @@ var _ NameSpaceListerConfigUpdater = (*Service)(nil)
 
 // Service is a struct that provides methods to list Kubernetes namespaces
 type Service struct {
-	client             *kubernetes.Clientset
+	client             kubernetes.Interface
 	kubeConfigLocation string
 }
 
@@ -29,37 +25,22 @@ func (s *Service) GetKubeConfigLocation() string {
 
 // NewService creates a new instance of Service that connects to the Kubernetes API
 func NewService() (*Service, error) {
-	var config *rest.Config
-	var err error
 
-	kubeconfig := os.Getenv("KUBECONFIG")
-	// first try to use the KUBECONFIG environment variable
-	if kubeconfig != "" {
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-	} else {
-		// if KUBECONFIG is not set, try to use the default kubeconfig file
-		// get the home directory to construct the default kubeconfig path
-		// this is usually located at $HOME/.kube/config
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			return nil, fmt.Errorf("could not get home directory: %w", err)
-		}
-		kubeconfig = filepath.Join(homeDir, ".kube", "config")
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to build config from kubeconfig file %s: %w", kubeconfig, err)
-		}
-	}
+	// Load kubeconfig using standard loading rules - KUBECONFIG or ~/.kube/config
+	// we are not looking for an in-cluster configuration
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	kubeconfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		loadingRules,
+		&clientcmd.ConfigOverrides{},
+	)
 
+	// Create a client config from the kubeconfig
+	// This will use the default kubeconfig file if no specific file is provided
+	// or if the KUBECONFIG environment variable is not set
+	// If the kubeconfig file is not found, it will return an error
+	config, err := kubeconfig.ClientConfig()
 	if err != nil {
-		// if we cannot read the kubeconfig file, try to use in-cluster config
-		// extra step to check if we are running inside a Kubernetes pod which
-		// means we do not have a kubeconfig file
-		if _, err = rest.InClusterConfig(); err == nil {
-			// InClusterConfig is used when running inside a Kubernetes pod
-			return nil, fmt.Errorf("in-cluster configs are not supported, we need kubeconfig file to update: %w", err)
-		}
-		return nil, fmt.Errorf("failed to read kubernetes config: %w", err)
+		return nil, fmt.Errorf("failed to create client config: %w", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
@@ -68,7 +49,7 @@ func NewService() (*Service, error) {
 	}
 	return &Service{
 		client:             clientset,
-		kubeConfigLocation: kubeconfig,
+		kubeConfigLocation: loadingRules.GetDefaultFilename(),
 	}, nil
 }
 

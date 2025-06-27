@@ -17,7 +17,8 @@ func (s *Service) UpdateKubeConfigWithNamespace(ctx context.Context, namespace s
 	}
 
 	// check if namespace actually exists in the kubernets cluster
-	if _, err := s.client.CoreV1().Namespaces().Get(ctx, namespace, metav1.GetOptions{}); err != nil {
+	_, err := s.client.CoreV1().Namespaces().Get(ctx, namespace, metav1.GetOptions{})
+	if err != nil {
 		return fmt.Errorf("error reading namespace '%s': %w", namespace, err)
 	}
 

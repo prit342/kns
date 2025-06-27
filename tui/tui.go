@@ -64,9 +64,9 @@ type model struct {
 	kubeconfigLocation string                           // file path of the kubeconfig file
 }
 
-// TODO: use this to to bootstrap the
+// Based on the example of lists at https://github.com/charmbracelet/bubbletea/tree/main/tutorials/commands
 //
-//	list as per https://github.com/charmbracelet/bubbletea/tree/main/tutorials/commands
+// Init initializes the model and returns a command to run
 func (m model) Init() tea.Cmd {
 	return nil
 }
