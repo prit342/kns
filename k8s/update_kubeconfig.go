@@ -9,19 +9,22 @@ import (
 )
 
 // UpdateKubeConfigWithNamespace updates the kubeconfig to use the specified namespace
-func (s *Service) UpdateKubeConfigWithNamespace(ctx context.Context, namespace string) error {
-
+func (s *Service) UpdateKubeConfigWithNamespace(
+	ctx context.Context, // context for the operation
+	namespace string, // the namespace to switch to in the kubeconfig
+	checkIfExists bool, // whether to check if the namespace exists before updating
+) error {
 	// Check if the namespace is valid
 	if namespace == "" {
 		return fmt.Errorf("namespace cannot be empty")
 	}
-
-	// check if namespace actually exists in the kubernets cluster
-	_, err := s.client.CoreV1().Namespaces().Get(ctx, namespace, metav1.GetOptions{})
-	if err != nil {
-		return fmt.Errorf("error reading namespace '%s': %w", namespace, err)
+	if checkIfExists {
+		// check if namespace actually exists in the kubernets cluster
+		_, err := s.client.CoreV1().Namespaces().Get(ctx, namespace, metav1.GetOptions{})
+		if err != nil {
+			return fmt.Errorf("error reading namespace '%s': %w", namespace, err)
+		}
 	}
-
 	// Get the current context
 	config, err := clientcmd.LoadFromFile(s.kubeConfigLocation)
 	if err != nil {

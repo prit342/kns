@@ -49,7 +49,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if len(os.Args) == 2 {
+	if len(os.Args) == 2 { // we have exactly one argument, we check what it is
 		switch os.Args[1] {
 		case "version":
 			fmt.Printf(versionMessage, os.Args[0], version, buildDate, gitCommit)
@@ -60,7 +60,9 @@ func main() {
 		default:
 			// try to switch to the specified namespace
 			namespace := os.Args[1]
-			if err := svc.UpdateKubeConfigWithNamespace(ctx, namespace); err != nil {
+			// TODO: do not verify if the namespace exits using the checkIfExists flag,
+			// might have to introduce a flag later to control this behaviour
+			if err := svc.UpdateKubeConfigWithNamespace(ctx, namespace, false); err != nil {
 				// if we cannot switch to the namespace, we print an error message and exit
 				fmt.Fprintf(os.Stderr, "\n\n❌ ❌ Error switching to namespace %q: %v\n", namespace, err)
 				os.Exit(1)

@@ -51,7 +51,8 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		}
 	}
 
-	fmt.Fprint(w, fn(str))
+	fmt.Fprint(w, fn(str)) // nolint:errcheck
+
 }
 
 // model holds the state of the application
@@ -91,11 +92,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if ok {
 				m.choice = string(i)
 			}
-			if err := m.svc.UpdateKubeConfigWithNamespace(context.Background(), m.choice); err != nil {
+			if err := m.svc.UpdateKubeConfigWithNamespace(context.Background(), m.choice, false); err != nil {
 				m.err = fmt.Errorf("failed to update kubeconfig with namespace %s: %w", m.choice, err)
 				m.quitting = true
 			}
-
 			return m, tea.Quit
 		}
 	}

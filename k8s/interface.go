@@ -8,5 +8,5 @@ import (
 type NameSpaceListerConfigUpdater interface {
 	ListNamespaces(ctx context.Context) ([]string, error)
 	GetKubeConfigLocation() string
-	UpdateKubeConfigWithNamespace(ctx context.Context, namespace string) error
+	UpdateKubeConfigWithNamespace(context.Context, string, bool) error
 }
