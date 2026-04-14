@@ -7,6 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 // check if Service implements NameSpaceLister interface
@@ -16,6 +17,7 @@ var _ NameSpaceListerConfigUpdater = (*Service)(nil)
 type Service struct {
 	client             kubernetes.Interface
 	kubeConfigLocation string
+	rawConfig          clientcmdapi.Config // cached parsed kubeconfig, avoids re-reading the file on every switch
 }
 
 // GetKubeConfigLocation returns the location of the kubeconfig file used by the Service
@@ -47,9 +49,18 @@ func NewService() (*Service, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kubernets clientset: %w", err)
 	}
+
+	// Load the raw kubeconfig once and cache it so UpdateKubeConfigWithNamespace
+	// can reuse it without reading the file a second time.
+	rawCfg, err := kubeconfig.RawConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load raw kubeconfig: %w", err)
+	}
+
 	return &Service{
 		client:             clientset,
 		kubeConfigLocation: loadingRules.GetDefaultFilename(),
+		rawConfig:          rawCfg,
 	}, nil
 }
 

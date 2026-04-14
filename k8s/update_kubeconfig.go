@@ -25,21 +25,13 @@ func (s *Service) UpdateKubeConfigWithNamespace(
 			return fmt.Errorf("error reading namespace '%s': %w", namespace, err)
 		}
 	}
-	// Get the current context
-	config, err := clientcmd.LoadFromFile(s.kubeConfigLocation)
-	if err != nil {
-		return fmt.Errorf("failed to load kubeconfig: %w", err)
-	}
-
-	// try to find the current context
-	currentContext := config.CurrentContext
+	// Use the cached kubeconfig — no need to re-read the file from disk.
+	currentContext := s.rawConfig.CurrentContext
 	if currentContext == "" {
 		return fmt.Errorf("no current context set in kubeconfig")
 	}
 
-	// update the namespace for the current context
-	config.Contexts[currentContext].Namespace = namespace
-
-	// Save back to file
-	return clientcmd.WriteToFile(*config, s.kubeConfigLocation)
+	// Update the namespace for the current context and persist to disk.
+	s.rawConfig.Contexts[currentContext].Namespace = namespace
+	return clientcmd.WriteToFile(s.rawConfig, s.kubeConfigLocation)
 }

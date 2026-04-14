@@ -75,6 +75,11 @@ func (m model) Init() tea.Cmd {
 // Update handles user input and updates the model accordingly
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+
+	// Capture the filter state before the list processes the message.
+	// If we check after list.Update, the state has already changed and
+	// we cannot distinguish between "esc to cancel filter" and "esc to quit".
+	wasFiltering := m.list.FilterState() == list.Filtering
 	m.list, cmd = m.list.Update(msg)
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -83,16 +88,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
-		case "esc", "ctrl+c":
+		case "ctrl+c":
 			m.quitting = true
 			return m, tea.Quit
+
+		case "esc":
+			// Only quit when not in filter mode; otherwise let the list
+			// handle esc to clear the active filter and return to the full list.
+			if !wasFiltering {
+				m.quitting = true
+				return m, tea.Quit
+			}
 
 		case "enter", " ":
 			i, ok := m.list.SelectedItem().(item)
 			if ok {
 				m.choice = string(i)
 			}
-			if err := m.svc.UpdateKubeConfigWithNamespace(context.Background(), m.choice, false); err != nil {
+			err := m.svc.UpdateKubeConfigWithNamespace(context.TODO(), m.choice, false)
+			if err != nil {
 				m.err = fmt.Errorf("failed to update kubeconfig with namespace %s: %w", m.choice, err)
 				m.quitting = true
 			}

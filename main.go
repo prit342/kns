@@ -34,6 +34,7 @@ Git Commit: %s
 `
 
 func main() {
+
 	svc, err := k8s.NewService()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error creating Kubernetes service:", err)
@@ -52,10 +53,10 @@ func main() {
 	if len(os.Args) == 2 { // we have exactly one argument, we check what it is
 		switch os.Args[1] {
 		case "version":
-			fmt.Printf(versionMessage, os.Args[0], version, buildDate, gitCommit)
+			fmt.Fprintf(os.Stdout, versionMessage, os.Args[0], version, buildDate, gitCommit)
 			os.Exit(0)
-		case "help":
-			fmt.Printf(helpMessage, os.Args[0])
+		case "help", "--help", "-h":
+			fmt.Fprintf(os.Stdout, helpMessage, os.Args[0])
 			os.Exit(0)
 		default:
 			// try to switch to the specified namespace
@@ -67,7 +68,7 @@ func main() {
 				fmt.Fprintf(os.Stderr, "\n\n❌ ❌ Error switching to namespace %q: %v\n", namespace, err)
 				os.Exit(1)
 			}
-			fmt.Printf("\n✅ Updated kube config at %q and switched to namespace %q\n",
+			fmt.Fprintf(os.Stdout, "\n✅ Updated kube config at %q and switched to namespace %q\n",
 				svc.GetKubeConfigLocation(), namespace)
 			return
 		}
@@ -84,7 +85,7 @@ func main() {
 	m := tui.NewModel(svc, namespaces, svc.GetKubeConfigLocation())
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
+		fmt.Fprintln(os.Stderr, "Error running program:", err)
 		os.Exit(1)
 	}
 }

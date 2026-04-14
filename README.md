@@ -1,10 +1,10 @@
 # kns
 
-`kns` is a terminal user interface (TUI) tool for quickly switching the active namespace in your Kubernetes kubeconfig file. It lists all namespaces in your current Kubernetes context and lets you interactively select one, updating your kubeconfig accordingly. Its built on top of the `bubbltea` framework available at https://github.com/charmbracelet/bubbletea.
+`kns` is a terminal user interface (TUI) tool for quickly switching the active namespace in your Kubernetes kubeconfig file. It lists all namespaces in your current Kubernetes context and lets you interactively select one, updating your kubeconfig accordingly. It is built on top of the `bubbletea` framework available at https://github.com/charmbracelet/bubbletea.
 
 # Prerequisites
 - You will need a valid kubeconfig file that has access to a Kubernetes cluster.
-- The `KUBECONFIG` environment variable should be set to point to your kubeconfig file, or it will default to `~/.kube/config`. In-cluster configurations will not work.
+- The `KUBECONFIG` environment variable should be set to point to your kubeconfig file, or it will default to `~/.kube/config`. **In-cluster configurations will not work.**
 - You should have relevant permissions to list all namespaces in the cluster.
 - You should have permission to read a namespace from the kubernetes cluster.
 - You should have write permissions to update the kubeconfig file.
@@ -13,8 +13,10 @@
 
 - Lists all namespaces in the current Kubernetes context.
 - Interactive TUI for namespace selection using keyboard navigation.
+- **Fuzzy search** — press `/` to filter namespaces by partial name (e.g. `fl`, `kube`).
 - Updates your kubeconfig file to set the selected namespace as default for the current context.
-- Works with the kubeconfig file specified by the `KUBECONFIG` environment variable or defaults to user's home directory.
+- Works with the kubeconfig file specified by the `KUBECONFIG` environment variable or defaults to `~/.kube/config`.
+- Direct command-line mode to switch namespace without opening the TUI.
 
 
 ## Screenshot
@@ -40,15 +42,20 @@ go build -o kns .
 
 ## Usage
 
-### Intervactive mode - simply run the binary:
+### Interactive mode — simply run the binary:
 
 ```sh
 ./kns
 ```
 
-- Use the arrow keys to navigate the list of namespaces.
-- Press `Enter` or `Space` to select a namespace.
-- Press `q` or `Ctrl+C` to quit without making changes.
+| Key | Action |
+|-----|--------|
+| `↑` / `↓` | Navigate the namespace list |
+| `/` | Enter search mode — type to filter by partial name |
+| `Esc` (in search) | Clear the filter and return to the full list |
+| `Enter` or `Space` | Select the highlighted namespace |
+| `Esc` (outside search) | Quit without making changes |
+| `Ctrl+C` | Quit without making changes |
 
 ### Command Line Mode - Switch to a specific namespace directly:
 ```sh
@@ -63,12 +70,13 @@ kns <namespace>
 ## Project Structure
 
 - `main.go`: Entry point for the CLI application.
-- `k8s/service.go`: Kubernetes client logic for connecting to a K8s cluster and listing namespaces.
+- `k8s/service.go`: Kubernetes client logic for connecting to a K8s cluster, listing namespaces, and caching the parsed kubeconfig.
 - `k8s/interface.go`: Interface definitions.
-- `k8s/update_kubeconfig.go`: Logic for updating the kubeconfig file with the selected namespace.
+- `k8s/update_kubeconfig.go`: Logic for updating the kubeconfig file with the selected namespace (uses the cached config — no second file read).
 - `tui/tui.go`: TUI implementation using Bubble Tea and Bubbles.
 
 
 ## TODO List
-- [x] Add functionaly to run `kns <namespace>` to switch to a specific namespace directly from the command line.
-- [ ] Add various tests
+- [x] Add functionality to run `kns <namespace>` to switch to a specific namespace directly from the command line.
+- [x] Add fuzzy search / filtering in the TUI.
+- [ ] Add various tests.
